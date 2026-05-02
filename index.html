@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Google Classroom</title>
+    <link rel="icon" href="https://wikimedia.org">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            color: white;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        .card {
+            background: rgba(0,0,0,0.9);
+            padding: 40px;
+            border-radius: 12px;
+            width: 400px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 1px solid #333;
+        }
+        input, button {
+            width: 100%;
+            padding: 14px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        input { background: #1c1c1c; color: white; border: 1px solid #444; }
+        input:focus { border-color: #4CAF50; outline: none; }
+        .signin { background: #4CAF50; color: white; cursor: pointer; font-weight: bold; }
+        .signin:hover { background: #45a049; }
+        .ownerBtn { background: #f59e0b; color: white; cursor: pointer; }
+        .ownerBtn:hover { background: #d97706; }
+        #error { color:#ff4d4d; margin-top:10px; display:none; font-size: 14px; }
+        hr { border: 0; border-top: 1px solid #333; margin: 20px 0; }
+        #userList { text-align: left; margin-top: 15px; font-size: 14px; max-height: 150px; overflow-y: auto; color: #aaa; }
+    </style>
+</head>
+<body>
+
+<div class="card" id="mainCard">
+    <h2>Google Classroom</h2>
+    <input id="username" placeholder="Username or email">
+    <input id="password" type="password" placeholder="Password">
+    <button class="signin" onclick="checkLogin()">Sign in</button>
+    <div id="error">Invalid username or password</div>
+</div>
+
+<script>
+// Security Salt
+const SALT = "8fj29f92jf";
+
+// Hash function for passwords
+async function sha256(text) {
+    const data = new TextEncoder().encode(text + SALT);
+    const hash = await crypto.subtle.digest("SHA-256", data);
+    return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+// Initial User Data
+let users = JSON.parse(localStorage.getItem("users")) || null;
+async function initUsers() {
+    if (users) return;
+    users = {};
+    users["lap0963"] = await sha256("my8vc2f3");
+    users["chickenegg"] = await sha256("chicken@s");
+    localStorage.setItem("users", JSON.stringify(users));
+}
+initUsers();
+
+// Login Logic
+async function checkLogin() {
+    const uInput = document.getElementById("username").value.trim();
+    const pInput = document.getElementById("password").value;
+    const hash = await sha256(pInput);
+
+    if (uInput === "lap0963" && pInput === "my8vc2f3") {
+        showOwnerPanel();
+        return;
+    }
+
+    if (users[uInput] && users[uInput] === hash) {
+        openLauncherTab();
+        setTimeout(() => window.location.href = "https://google.com", 1000);
+    } else {
+        document.getElementById("error").style.display = "block";
+        setTimeout(() => document.getElementById("error").style.display = "none", 2500);
+    }
+}
+
+// Owner Panel UI
+function showOwnerPanel() {
+    document.getElementById("mainCard").innerHTML = `
+        <h2>Owner Panel</h2>
+        <input id="newUser" placeholder="New Username">
+        <input id="newPass" type="password" placeholder="New Password">
+        <button class="ownerBtn" onclick="addUser()">Add User</button>
+        <hr>
+        <input id="delUser" placeholder="Username to Delete">
+        <button class="ownerBtn" style="background:#dc2626" onclick="deleteUser()">Delete User</button>
+        <button class="ownerBtn" style="background:#4b5563" onclick="viewUsers()">View All Users</button>
+        <div id="userList"></div>
+        <button onclick="openLauncherTab()" style="margin-top:20px;background:#4285f4;color:white;">Launch Disguised Tab</button>
+    `;
+}
+
+async function addUser() {
+    const u = document.getElementById("newUser").value.trim();
+    const p = document.getElementById("newPass").value;
+    if (!u || !p) return alert("Please fill both fields.");
+    if (users[u]) return alert("User already exists!");
+    users[u] = await sha256(p);
+    localStorage.setItem("users", JSON.stringify(users));
+    alert("User successfully added.");
+}
+
+function deleteUser() {
+    const u = document.getElementById("delUser").value.trim();
+    if (u === "lap0963") return alert("The owner account cannot be deleted.");
+    if (users[u]) {
+        delete users[u];
+        localStorage.setItem("users", JSON.stringify(users));
+        alert("User removed.");
+    } else alert("User not found.");
+}
+
+function viewUsers() {
+    const list = Object.keys(users).map(u => "• " + u).join("<br>");
+    document.getElementById("userList").innerHTML = list || "No registered users.";
+}
+
+// Launcher Function
+function openLauncherTab() {
+    const win = window.open("about:blank", "_blank");
+    if (!win) return alert("Pop-up blocked! Please allow pop-ups for this site in your browser settings.");
+
+    win.document.write(`
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Google Classroom</title>
+    <link rel="icon" href="https://wikimedia.org">
+    <style>
+        body { background:#0f172a; color:white; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align:center; padding:40px; margin:0; }
+        h2 { margin-bottom:40px; font-size: 32px; color: #f8fafc; }
+        .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:20px; max-width:1000px; margin:0 auto; }
+        button { padding:25px; font-size:18px; background:#4285f4; border:none; border-radius:10px; color:white; cursor:pointer; transition: 0.3s ease; }
+        button:hover { background:#3367d6; transform: translateY(-3px); box-shadow: 0 5px 15px rgba(66, 133, 244, 0.4); }
+    </style>
+</head>
+<body>
+    <h2>Google Classroom - Resources</h2>
+    <div class="grid">
+        <button onclick="location.href='https://githubusercontent.com'">English Resources</button>
+        <button onclick="location.href='https://githubusercontent.com'">Math Tools</button>
+        <button onclick="location.href='https://githubusercontent.com'">Science Lab</button>
+        <button onclick="location.href='https://githubusercontent.com'">History Notes</button>
+        <button onclick="alert('Module loading...')">Art Studio</button>
+    </div>
+</body>
+</html>`);
+    win.document.close();
+}
+</script>
+</body>
+</html>
