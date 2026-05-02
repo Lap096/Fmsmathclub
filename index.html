@@ -5,15 +5,7 @@
     <title>Google Classroom</title>
     <link rel="icon" type="image/png" href="https://upload.wikimedia.org/wikipedia/commons/5/59/Google_Classroom_Logo.png">
     <style>
-/* Import Google's official Roboto font */
 @import url('https://googleapis.com');
-
-:root {
-    --google-green: #1e8e3e; /* Standard Classroom green */
-    --google-blue: #1a73e8;  /* Google's action blue */
-    --google-gray: #5f6368;  /* Standard text gray */
-    --bg-light: #f8f9fa;     /* Light gray background used by Google */
-}
 
 body {
     margin: 0;
@@ -21,91 +13,105 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    font-family: 'Roboto', sans-serif;
-    background-color: var(--bg-light);
-    color: #202124; /* Google's primary text color */
+    font-family: 'Inter', sans-serif;
+    /* Dark, deep space gradient */
+    background: radial-gradient(circle at top left, #1a1a1a, #000000);
+    color: white;
+    overflow: hidden;
 }
 
 .card {
-    background: #ffffff;
-    padding: 32px 40px;
-    border-radius: 8px;
-    width: 380px;
+    /* Glassmorphism effect */
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    
+    padding: 40px;
+    border-radius: 20px;
+    width: 360px;
     text-align: center;
-    box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
-    border: 1px solid #dadce0;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
 }
 
 h2 {
-    font-size: 24px;
-    font-weight: 400;
-    margin-bottom: 8px;
-    color: #202124;
-}
-
-/* Subtitle style often seen in Google logins */
-.card::after {
-    content: "Use your Classroom Account";
-    display: block;
-    font-size: 16px;
-    color: var(--google-gray);
-    margin-bottom: 24px;
+    font-weight: 600;
+    letter-spacing: -0.5px;
+    margin-bottom: 30px;
+    color: #fff;
 }
 
 input {
     width: 100%;
     box-sizing: border-box;
-    padding: 13px 15px;
-    margin-top: 16px;
-    border: 1px solid #dadce0;
-    border-radius: 4px;
+    padding: 14px;
+    margin-top: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.3);
+    color: white;
     font-size: 14px;
-    transition: border 0.2s, box-shadow 0.2s;
+    transition: 0.3s;
 }
 
 input:focus {
     outline: none;
-    border-color: var(--google-blue);
-    box-shadow: 0 0 0 2px rgba(26,115,232,0.2);
+    border-color: #00ff88; /* Neon Green focus */
+    background: rgba(0, 0, 0, 0.5);
 }
 
 button {
     width: 100%;
-    margin-top: 24px;
-    padding: 10px 24px;
+    margin-top: 20px;
+    padding: 14px;
     border: none;
-    border-radius: 4px;
-    background: var(--google-green);
-    color: white;
-    font-size: 14px;
-    font-weight: 500;
+    border-radius: 10px;
+    background: #00ff88; /* Bright Classroom Green */
+    color: #000;
+    font-size: 15px;
+    font-weight: 600;
     cursor: pointer;
-    transition: background 0.2s, box-shadow 0.2s;
+    transition: 0.2s;
 }
 
 button:hover {
-    background: #187a34;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    background: #00cc6e;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 255, 136, 0.3);
 }
 
 .clientBtn {
-    background: var(--google-blue);
-    margin-bottom: 12px;
+    background: #3b82f6;
+    color: white;
+    margin-bottom: 10px;
 }
 
-.clientBtn:hover { background: #1765cc; }
+.clientBtn:hover {
+    background: #2563eb;
+    box-shadow: 0 5px 15px rgba(59, 130, 246, 0.3);
+}
 
 .ownerBtn {
-    background: #ffffff;
-    color: var(--google-blue);
-    border: 1px solid #dadce0;
-    margin-bottom: 8px;
+    background: transparent;
+    color: #f59e0b;
+    border: 1px solid #f59e0b;
 }
 
-.ownerBtn:hover { background: #f1f3f4; }
+.ownerBtn:hover {
+    background: #f59e0b;
+    color: black;
+}
 
-#error { color: #d93025; font-size: 12px; margin-top: 8px; text-align: left; }
+#error { color: #ff4d4d; font-size: 13px; margin-top: 15px; display: none; }
+#lockMsg { color: #f59e0b; font-size: 13px; margin-top: 15px; display: none; }
+
+.scroll {
+    max-height: 50vh;
+    overflow-y: auto;
+    margin-top: 15px;
+}
 </style>
+
 
 
 </head>
