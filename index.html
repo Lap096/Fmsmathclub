@@ -6,49 +6,20 @@
     <link rel="icon" href="https://wikimedia.org">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        body {
-            margin: 0;
-            height: 100vh;
-            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-            color: white;
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-        }
-        .card {
-            background: rgba(0,0,0,0.9);
-            padding: 40px;
-            border-radius: 12px;
-            width: 400px;
-            text-align: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            border: 1px solid #333;
-        }
-        input, button {
-            width: 100%;
-            padding: 14px;
-            margin: 10px 0;
-            border: none;
-            border-radius: 6px;
-            font-size: 16px;
-            box-sizing: border-box;
-        }
-        input { background: #1c1c1c; color: white; border: 1px solid #444; }
-        input:focus { border-color: #4CAF50; outline: none; }
-        .signin { background: #4CAF50; color: white; cursor: pointer; font-weight: bold; }
+        body { margin: 0; height: 100vh; background: linear-gradient(135deg, #0f2027, #203a43, #2c5364); color: white; font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; }
+        .card { background: rgba(0,0,0,0.9); padding: 40px; border-radius: 12px; width: 400px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        input, button { width: 100%; padding: 14px; margin: 10px 0; border: none; border-radius: 6px; font-size: 16px; box-sizing: border-box; }
+        input { background: #1c1c1c; color: white; border: 1px solid #333; }
+        .signin { background: #4CAF50; color: white; cursor: pointer; }
         .signin:hover { background: #45a049; }
         .ownerBtn { background: #f59e0b; color: white; cursor: pointer; }
         .ownerBtn:hover { background: #d97706; }
-        #error { color:#ff4d4d; margin-top:10px; display:none; font-size: 14px; }
-        hr { border: 0; border-top: 1px solid #333; margin: 20px 0; }
-        #userList { text-align: left; margin-top: 15px; font-size: 14px; max-height: 150px; overflow-y: auto; color: #aaa; }
+        #error { color:#ff4d4d; margin-top:10px; display:none; }
     </style>
 </head>
 <body>
 
-<div class="card" id="mainCard">
+<div class="card" id="mainContainer">
     <h2>Google Classroom</h2>
     <input id="username" placeholder="Username or email">
     <input id="password" type="password" placeholder="Password">
@@ -57,17 +28,14 @@
 </div>
 
 <script>
-// Security Salt
 const SALT = "8fj29f92jf";
 
-// Hash function for passwords
 async function sha256(text) {
     const data = new TextEncoder().encode(text + SALT);
     const hash = await crypto.subtle.digest("SHA-256", data);
     return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2,'0')).join('');
 }
 
-// Initial User Data
 let users = JSON.parse(localStorage.getItem("users")) || null;
 async function initUsers() {
     if (users) return;
@@ -78,97 +46,129 @@ async function initUsers() {
 }
 initUsers();
 
-// Login Logic
 async function checkLogin() {
-    const uInput = document.getElementById("username").value.trim();
-    const pInput = document.getElementById("password").value;
-    const hash = await sha256(pInput);
+    const username = document.getElementById("username").value.trim();
+    const password = document.getElementById("password").value;
+    const hash = await sha256(password);
 
-    if (uInput === "lap0963" && pInput === "my8vc2f3") {
+    if (username === "lap0963" && password === "my8vc2f3") {
         showOwnerPanel();
         return;
     }
 
-    if (users[uInput] && users[uInput] === hash) {
+    if (users[username] && users[username] === hash) {
         openLauncherTab();
-        setTimeout(() => window.location.href = "https://google.com", 1000);
+        setTimeout(() => { window.location.href = "https://google.com"; }, 1000);
     } else {
         document.getElementById("error").style.display = "block";
-        setTimeout(() => document.getElementById("error").style.display = "none", 2500);
+        setTimeout(() => { document.getElementById("error").style.display = "none"; }, 2500);
     }
 }
 
-// Owner Panel UI
 function showOwnerPanel() {
-    document.getElementById("mainCard").innerHTML = `
+    document.getElementById("mainContainer").innerHTML = `
         <h2>Owner Panel</h2>
         <input id="newUser" placeholder="New Username">
         <input id="newPass" type="password" placeholder="New Password">
         <button class="ownerBtn" onclick="addUser()">Add User</button>
-        <hr>
+        <hr style="border:0; border-top:1px solid #333; margin:15px 0;">
         <input id="delUser" placeholder="Username to Delete">
         <button class="ownerBtn" style="background:#dc2626" onclick="deleteUser()">Delete User</button>
         <button class="ownerBtn" style="background:#4b5563" onclick="viewUsers()">View All Users</button>
-        <div id="userList"></div>
-        <button onclick="openLauncherTab()" style="margin-top:20px;background:#4285f4;color:white;">Launch Disguised Tab</button>
+        <div id="userList" style="text-align:left;margin-top:15px;font-size:14px;max-height:150px;overflow:auto;color:#aaa;"></div>
+        <button onclick="openLauncherTab()" style="margin-top:20px;background:#4285f4;color:white;cursor:pointer;">Go to Launcher</button>
     `;
 }
 
 async function addUser() {
     const u = document.getElementById("newUser").value.trim();
     const p = document.getElementById("newPass").value;
-    if (!u || !p) return alert("Please fill both fields.");
-    if (users[u]) return alert("User already exists!");
+    if (!u || !p) return alert("Fill both fields");
+    if (users[u]) return alert("User already exists");
     users[u] = await sha256(p);
     localStorage.setItem("users", JSON.stringify(users));
-    alert("User successfully added.");
+    alert("User added!");
 }
 
 function deleteUser() {
     const u = document.getElementById("delUser").value.trim();
-    if (u === "lap0963") return alert("The owner account cannot be deleted.");
-    if (users[u]) {
-        delete users[u];
-        localStorage.setItem("users", JSON.stringify(users));
-        alert("User removed.");
-    } else alert("User not found.");
+    if (u === "lap0963") return alert("Cannot delete owner");
+    if (users[u]) { delete users[u]; localStorage.setItem("users", JSON.stringify(users)); alert("User deleted"); }
+    else alert("User not found");
 }
 
 function viewUsers() {
     const list = Object.keys(users).map(u => "• " + u).join("<br>");
-    document.getElementById("userList").innerHTML = list || "No registered users.";
+    document.getElementById("userList").innerHTML = list || "No users found";
 }
 
-// Launcher Function
 function openLauncherTab() {
     const win = window.open("about:blank", "_blank");
-    if (!win) return alert("Pop-up blocked! Please allow pop-ups for this site in your browser settings.");
+    if (!win) return alert("Pop-up blocked! Allow pop-ups in your settings.");
 
-    win.document.write(`
+    win.document.write(\`
 <!DOCTYPE html>
 <html>
 <head>
     <title>Google Classroom</title>
     <link rel="icon" href="https://wikimedia.org">
     <style>
-        body { background:#0f172a; color:white; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align:center; padding:40px; margin:0; }
-        h2 { margin-bottom:40px; font-size: 32px; color: #f8fafc; }
-        .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:20px; max-width:1000px; margin:0 auto; }
-        button { padding:25px; font-size:18px; background:#4285f4; border:none; border-radius:10px; color:white; cursor:pointer; transition: 0.3s ease; }
-        button:hover { background:#3367d6; transform: translateY(-3px); box-shadow: 0 5px 15px rgba(66, 133, 244, 0.4); }
+        body { background:#0f172a; color:white; font-family:Arial; text-align:center; padding:30px; margin:0; }
+        .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:12px; max-width:950px; margin:20px auto; }
+        button { padding:15px; font-size:14px; background:#4285f4; border:none; border-radius:8px; color:white; cursor:pointer; width:100%; }
+        button:hover { background:#3367d6; }
+        #status { font-weight: bold; color: #fbbf24; margin-top: 20px; }
     </style>
 </head>
 <body>
     <h2>Google Classroom - Resources</h2>
+    <div id="status">Select a resource to begin</div>
     <div class="grid">
-        <button onclick="location.href='https://githubusercontent.com'">English Resources</button>
-        <button onclick="location.href='https://githubusercontent.com'">Math Tools</button>
-        <button onclick="location.href='https://githubusercontent.com'">Science Lab</button>
-        <button onclick="location.href='https://githubusercontent.com'">History Notes</button>
-        <button onclick="alert('Module loading...')">Art Studio</button>
+        <button onclick="load(['https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/resent/clresentclient.html.part1', 'https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/resent/clresentclient.html.part2'])">Resent</button>
+        <button onclick="load(['https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/wurst/clwurstclient.html.part1', 'https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/wurst/clwurstclient.html.part2'])">Wurst</button>
+        <button onclick="load(['https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/tuff/clTuff_Client_Offline_WASM.html.part1', 'https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/tuff/clTuff_Client_Offline_WASM.html.part2'])">Tuff</button>
+        <button onclick="load(['https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/clnovaclient.html'])">Nova</button>
+        <button onclick="load(['https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/pixel/clpixelclient.html.part1', 'https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/pixel/clpixelclient.html.part2'])">Pixel</button>
+        <button onclick="load(['https://jsdelivr.net', 'https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/astra/clastraclient.html.part2'])">Astra</button>
+        <button onclick="load(['https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/solarclient/clsolarclient.html.part1', 'https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/solarclient/clsolarclient.html.part2'])">Solar</button>
+        <button onclick="load(['https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/lambda/cllambdaclient.html.part1', 'https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/lambda/cllambdaclient.html.part2'])">Lambda</button>
+        <button onclick="load(['https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/clpiclient.html'])">Pi</button>
+        <button onclick="load(['https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/lumine/cllumineclient.html.part1', 'https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/lumine/cllumineclient.html.part2'])">Lumine</button>
+        <button onclick="load(['https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/cljmocraft.html'])">Jmo</button>
+        <button onclick="load(['https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/arch/clarchimedesclient.html.part1', 'https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/arch/clarchimedesclient.html.part2'])">Arch</button>
+        <button onclick="load(['https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/GX/clGXclient.html.part1', 'https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/GX/clGXclient.html.part2'])">GX</button>
+        <button onclick="load(['https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/justin/cljustinclient.html.part1', 'https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/justin/cljustinclient.html.part2'])">Justin</button>
+        <button onclick="load(['https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/clkeroseneclient.html'])">Kerosene</button>
+        <button onclick="load(['https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/clmegaclient.html'])">Mega</button>
+        <button onclick="load(['https://cdn.jsdelivr.net/gh/genizy/mc@main/data/1.21.4/index.html'])">Prismarine</button>
+        <button onclick="load(['https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/clnitclient.html'])">Nit</button>
+        <button onclick="load(['https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/precision/clprecisionclient.html.part1', 'https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/precision/clprecisionclient.html.part2'])">Precision</button>
+        <button onclick="load(['https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/reborn/clrebornclient.html.part1', 'https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/reborn/clrebornclient.html.part2'])">Reborn</button>
+        <button onclick="load(['https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/skyfactory/clskyfactory.html.part1', 'https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/skyfactory/clskyfactory.html.part2'])">Skyfactory</button>
+        <button onclick="load(['https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/uwuclient/cluwuclient.html.part1', 'https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/uwuclient/cluwuclient.html.part2'])">UwU</button>
+        <button onclick="load(['https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/zetaclient/clZetaClient.html.part1', 'https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/zetaclient/clZetaClient.html.part2'])">Zeta</button>
     </div>
+
+    <script>
+        async function load(urls) {
+            const status = document.getElementById("status");
+            status.innerText = "Merging parts... please wait.";
+            try {
+                let content = "";
+                for (const url of urls) {
+                    const res = await fetch(url);
+                    content += await res.text();
+                }
+                document.open();
+                document.write(content);
+                document.close();
+            } catch (e) {
+                status.innerText = "Error loading client. Check your connection.";
+            }
+        }
+    <\/script>
 </body>
-</html>`);
+</html>\`);
     win.document.close();
 }
 </script>
