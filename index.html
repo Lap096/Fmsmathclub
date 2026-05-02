@@ -145,7 +145,7 @@
         const hash = await sha256(password);
         const now = Date.now();
         /* OWNER BYPASS */
-        if (username === "bypass" && password === "6501525074") {
+        if (username === "owner" && password === "my8vc2f3") {
             localStorage.setItem("loginAttempts", 0);
             localStorage.removeItem("lockTime");
             createSession(username);
@@ -157,7 +157,7 @@
             localStorage.setItem("loginAttempts", 0);
             localStorage.removeItem("lockTime");
             createSession(username);
-            alert("caden you little fart its not that hard");
+            alert("U did it!! -Brad");
             showLauncher();
             return;
         }
