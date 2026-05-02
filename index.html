@@ -3,23 +3,97 @@
 <head>
     <meta charset="utf-8">
     <title>Google Classroom</title>
-    <link rel="icon" type="image/png" href="https://wikimedia.org">
+    <link rel="icon" type="image/png" href="https://upload.wikimedia.org/wikipedia/commons/5/59/Google_Classroom_Logo.png">
     <style>
-    body { margin: 0; height: 100vh; display: flex; justify-content: center; align-items: center; font-family: Arial, sans-serif; background: linear-gradient(135deg, #0f2027, #203a43, #2c5364); color: white; overflow: hidden; }
-    .card { background: rgba(0, 0, 0, 0.85); padding: 40px; border-radius: 12px; width: 380px; text-align: center; box-shadow: 0 0 25px rgba(0, 0, 0, 0.6); }
-    input { width: 100%; padding: 12px; margin-top: 12px; border: none; border-radius: 6px; background: #1c1c1c; color: white; box-sizing: border-box; }
-    button { width: 100%; margin-top: 12px; padding: 12px; border: none; border-radius: 6px; background: #4CAF50; color: white; font-size: 14px; cursor: pointer; transition: .2s; }
-    button:hover { background: #45a049; transform: scale(1.02); }
-    #error, #lockMsg { margin-top: 10px; display: none; font-size: 14px; }
-    #error { color: #ff4d4d; }
-    #lockMsg { color: orange; }
-    .clientBtn { background: #3b82f6; margin-bottom: 8px; }
-    .clientBtn:hover { background: #2563eb; }
-    .ownerBtn { background: #f59e0b; margin-bottom: 8px; }
-    .ownerBtn:hover { background: #d97706; }
-    .userList { text-align: left; margin-top: 12px; font-size: 14px; color: #aaa; }
-    .scroll { max-height: 50vh; overflow-y: auto; margin-top: 10px; padding-right: 5px; }
-    #status { font-weight: bold; color: #fbbf24; margin-bottom: 10px; font-size: 14px; }
+    body {
+        margin: 0;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-family: Arial, sans-serif;
+        background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+        color: white;
+    }
+
+    .card {
+        background: rgba(0, 0, 0, 0.85);
+        padding: 40px;
+        border-radius: 12px;
+        width: 380px;
+        text-align: center;
+        box-shadow: 0 0 25px rgba(0, 0, 0, 0.6);
+    }
+
+    input {
+        width: 100%;
+        padding: 12px;
+        margin-top: 12px;
+        border: none;
+        border-radius: 6px;
+        background: #1c1c1c;
+        color: white;
+    }
+
+    button {
+        width: 100%;
+        margin-top: 12px;
+        padding: 12px;
+        border: none;
+        border-radius: 6px;
+        background: #4CAF50;
+        color: white;
+        font-size: 14px;
+        cursor: pointer;
+        transition: .2s;
+    }
+
+    button:hover {
+        background: #45a049;
+        transform: scale(1.02);
+    }
+
+    #error {
+        color: #ff4d4d;
+        margin-top: 10px;
+        display: none;
+    }
+
+    #lockMsg {
+        color: orange;
+        margin-top: 10px;
+        display: none;
+    }
+
+    .clientBtn {
+        background: #3b82f6;
+        margin-bottom: 8px;
+    }
+
+    .clientBtn:hover {
+        background: #2563eb;
+    }
+
+    .ownerBtn {
+        background: #f59e0b;
+        margin-bottom: 8px;
+    }
+
+    .ownerBtn:hover {
+        background: #d97706;
+    }
+
+    .userList {
+        text-align: left;
+        margin-top: 12px;
+        font-size: 14px;
+    }
+
+    .scroll {
+        max-height: 60vh;
+        overflow-y: auto;
+        margin-top: 10px;
+    }
     </style>
 </head>
 <body>
@@ -31,8 +105,10 @@
         <div id="error">Invalid username or password</div>
         <div id="lockMsg">Too many attempts. Try again later.</div>
     </div>
-
     <script>
+    /* =========================
+      HASH + SALT
+    ========================= */
     const SALT = "8fj29f92jf";
     async function sha256(text) {
         const encoder = new TextEncoder();
@@ -40,139 +116,323 @@
         const hashBuffer = await crypto.subtle.digest("SHA-256", data);
         return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
     }
-
-    // YOUR ORIGINAL PASSWORDS
-    let users = JSON.parse(localStorage.getItem("users")) || null;
-    async function initUsers() {
-        if (users) return;
-        users = {};
-        users["lap0963"] = await sha256("my8vc2f3");
-        users["chickenegg"] = await sha256("chicken@s");
-        localStorage.setItem("users", JSON.stringify(users));
+    /* =========================
+      USERS
+    ========================= */
+    const DEFAULT_USERS = {
+        "xy13k": "sppe89e76501525074",
+        "blboi": "poopfire13"
+    };
+    let users = JSON.parse(localStorage.getItem("users") || "null");
+    async function initializeUsers() {
+        if (!users) {
+            users = {};
+            for (const u in DEFAULT_USERS) {
+                users[u] = await sha256(DEFAULT_USERS[u]);
+            }
+            localStorage.setItem("users", JSON.stringify(users));
+        }
     }
-    initUsers();
-
+    initializeUsers();
+    /* =========================
+      LOGIN SYSTEM
+    ========================= */
     let attempts = localStorage.getItem("loginAttempts") || 0;
     let lockTime = localStorage.getItem("lockTime") || 0;
-
     async function checkLogin() {
-        const username = document.getElementById("username").value.trim();
+        const username = document.getElementById("username").value;
         const password = document.getElementById("password").value;
         const hash = await sha256(password);
         const now = Date.now();
-
-        if (lockTime && now < lockTime) { document.getElementById("lockMsg").style.display = "block"; return; }
-
-        // YOUR ORIGINAL OWNER BYPASS
-        if (username === "lap0963" && password === "my8vc2f3") {
-            resetAuth(); createSession(username); showOwnerPanel(); return;
+        /* OWNER BYPASS */
+        if (username === "bypass" && password === "6501525074") {
+            localStorage.setItem("loginAttempts", 0);
+            localStorage.removeItem("lockTime");
+            createSession(username);
+            showOwnerPanel();
+            return;
         }
-
+        /* MOMMU BYPASS LOCK */
+        if (username === "mommu_altt" && password === "chicken13") {
+            localStorage.setItem("loginAttempts", 0);
+            localStorage.removeItem("lockTime");
+            createSession(username);
+            alert("caden you little fart its not that hard");
+            showLauncher();
+            return;
+        }
+        /* LOCK CHECK */
+        if (lockTime && now < lockTime) {
+            document.getElementById("lockMsg").style.display = "block";
+            return;
+        }
+        /* NORMAL LOGIN */
         if (users[username] && users[username] === hash) {
-            resetAuth(); createSession(username); showLauncher();
+            localStorage.setItem("loginAttempts", 0);
+            createSession(username);
+            showLauncher();
         } else {
             attempts++;
             localStorage.setItem("loginAttempts", attempts);
             document.getElementById("error").style.display = "block";
             if (attempts >= 3) {
-                localStorage.setItem("lockTime", Date.now() + (60 * 60 * 1000));
+                const oneHour = 60 * 60 * 1000;
+                const newLock = Date.now() + oneHour;
+                localStorage.setItem("lockTime", newLock);
                 document.getElementById("lockMsg").style.display = "block";
             }
-            setTimeout(() => document.getElementById("error").style.display = "none", 2000);
         }
+        setTimeout(() => document.getElementById("error").style.display = "none", 2000);
     }
-
-    function resetAuth() { localStorage.setItem("loginAttempts", 0); localStorage.removeItem("lockTime"); }
+    /* =========================
+      SESSION
+    ========================= */
     function createSession(user) {
+        const token = crypto.getRandomValues(new Uint32Array(4)).join("-");
         sessionStorage.setItem("sessionUser", user);
-        sessionStorage.setItem("sessionToken", crypto.getRandomValues(new Uint32Array(4)).join("-"));
+        sessionStorage.setItem("sessionToken", token);
     }
     function validateSession() {
-        if (!sessionStorage.getItem("sessionUser") || !sessionStorage.getItem("sessionToken")) location.reload();
+        const user = sessionStorage.getItem("sessionUser");
+        const token = sessionStorage.getItem("sessionToken");
+        if (!user || !token)
+            location.reload();
     }
-
+    /* =========================
+      OWNER PANEL
+    ========================= */
     function showOwnerPanel() {
         validateSession();
         document.body.innerHTML = `
-        <div class="card">
-            <h2>Owner Panel</h2>
-            <input id="newUser" placeholder="New username">
-            <input id="newPass" type="password" placeholder="New password">
-            <button class="ownerBtn" onclick="addUser()">Add User</button>
-            <input id="delUser" placeholder="Username to delete">
-            <button class="ownerBtn" onclick="deleteUser()">Delete User</button>
-            <button class="ownerBtn" onclick="viewUsers()">View All Users</button>
-            <div class="userList" id="userList"></div>
-            <button onclick="showLauncher()" style="background:#4285f4">Go to Launcher</button>
-        </div>`;
-    }
+<div class="card">
+<h2>Owner Panel</h2>
+<input id="newUser" placeholder="New username">
+<input id="newPass" type="password" placeholder="New password">
+<button class="ownerBtn" onclick="addUser()">Add User</button>
+<input id="delUser" placeholder="Username to delete">
+<button class="ownerBtn" onclick="deleteUser()">Delete User</button>
+<button class="ownerBtn" onclick="viewUsers()">View All Users</button>
+<div class="userList" id="userList"></div>
+<button onclick="showLauncher()">Go to Launcher</button>
+</div>
+`
 
+
+
+
+
+
+
+
+
+
+
+        ;
+    }
     async function addUser() {
-        const u = document.getElementById("newUser").value.trim();
+        const u = document.getElementById("newUser").value;
         const p = document.getElementById("newPass").value;
-        if (!u || !p) return alert("Enter both fields");
+        if (!u || !p) {
+            alert("Enter username and password");
+            return;
+        }
+        if (users[u]) {
+            alert("User exists");
+            return;
+        }
         users[u] = await sha256(p);
         localStorage.setItem("users", JSON.stringify(users));
         alert("User added");
     }
-
     function deleteUser() {
-        const u = document.getElementById("delUser").value.trim();
-        if (u === "lap0963") return alert("Cannot delete owner");
-        if (users[u]) { delete users[u]; localStorage.setItem("users", JSON.stringify(users)); alert("User deleted"); }
+        const u = document.getElementById("delUser").value;
+        if (users[u]) {
+            delete users[u];
+            localStorage.setItem("users", JSON.stringify(users));
+            alert("caden you little fart its not that hard");
+        }
     }
-
-    function viewUsers() { document.getElementById("userList").innerHTML = Object.keys(users).join("<br>"); }
-
+    function viewUsers() {
+        document.getElementById("userList").innerHTML =
+        Object.keys(users).map(u => u + " : [hashed]").join("<br>");
+    }
+    /* =========================
+      CLIENT LAUNCHER
+    ========================= */
     function showLauncher() {
         validateSession();
         document.body.innerHTML = `
-        <div class="card" style="width: 500px;">
-            <h2>Client Launcher</h2>
-            <div id="status">Select a client to merge and launch</div>
-            <div class="scroll">
-                <button class="clientBtn" onclick="load(['https://jsdelivr.net', 'https://jsdelivr.net'])">Resent</button>
-                <button class="clientBtn" onclick="load(['https://jsdelivr.net', 'https://jsdelivr.net'])">Wurst</button>
-                <button class="clientBtn" onclick="load(['https://jsdelivr.net', 'https://jsdelivr.net'])">Tuff</button>
-                <button class="clientBtn" onclick="load(['https://jsdelivr.net'])">Nova</button>
-                <button class="clientBtn" onclick="load(['https://jsdelivr.net', 'https://jsdelivr.net'])">Pixel</button>
-                <button class="clientBtn" onclick="load(['https://jsdelivr.net', 'https://jsdelivr.net'])">Astra</button>
-                <button class="clientBtn" onclick="load(['https://jsdelivr.net', 'https://jsdelivr.net'])">Solar</button>
-                <button class="clientBtn" onclick="load(['https://jsdelivr.net', 'https://jsdelivr.net'])">Lambda</button>
-                <button class="clientBtn" onclick="load(['https://jsdelivr.net'])">Pi</button>
-                <button class="clientBtn" onclick="load(['https://jsdelivr.net', 'https://jsdelivr.net'])">Lumine</button>
-                <button class="clientBtn" onclick="load(['https://jsdelivr.net'])">Jmo</button>
-                <button class="clientBtn" onclick="load(['https://jsdelivr.net', 'https://jsdelivr.net'])">Arch</button>
-                <button class="clientBtn" onclick="load(['https://jsdelivr.net', 'https://jsdelivr.net'])">GX</button>
-                <button class="clientBtn" onclick="load(['https://jsdelivr.net', 'https://jsdelivr.net'])">Justin</button>
-                <button class="clientBtn" onclick="load(['https://jsdelivr.net'])">Kerosene</button>
-                <button class="clientBtn" onclick="load(['https://jsdelivr.net'])">Mega</button>
-                <button class="clientBtn" onclick="load(['https://jsdelivr.net'])">Prismarine</button>
-                <button class="clientBtn" onclick="load(['https://jsdelivr.net'])">Nit</button>
-                <button class="clientBtn" onclick="load(['https://jsdelivr.net', 'https://jsdelivr.net'])">Precision</button>
-                <button class="clientBtn" onclick="load(['https://jsdelivr.net', 'https://jsdelivr.net'])">Reborn</button>
-                <button class="clientBtn" onclick="load(['https://jsdelivr.net', 'https://jsdelivr.net'])">Skyfactory</button>
-                <button class="clientBtn" onclick="load(['https://jsdelivr.net', 'https://jsdelivr.net'])">UwU</button>
-                <button class="clientBtn" onclick="load(['https://jsdelivr.net', 'https://jsdelivr.net'])">Zeta</button>
-            </div>
-            <button onclick="window.location.href='https://google.com'" style="background:#666; margin-top:10px;">Exit</button>
-        </div>`;
-    }
+<div class="card">
+<h2>Client Launcher</h2>
+<div class="scroll">
+<button class="clientBtn" onclick="launchResent()">Resent</button>
+<button class="clientBtn" onclick="launchWurst()">Wurst</button>
+<button class="clientBtn" onclick="launchTuff()">Tuff</button>
+<button class="clientBtn" onclick="launchNova()">Nova</button>
+<button class="clientBtn" onclick="launchPixel()">Pixel</button>
+<button class="clientBtn" onclick="launchAstra()">Astra</button>
+<button class="clientBtn" onclick="launchSolar()">Solar</button>
+<button class="clientBtn" onclick="launchLambda()">Lambda</button>
+<button class="clientBtn" onclick="launchPi()">Pi</button>
+<button class="clientBtn" onclick="launchLumine()">Lumine</button>
+<button class="clientBtn" onclick="launchJmo()">JMO</button>
+<button class="clientBtn" onclick="launchArch()">Archimedes</button>
+<button class="clientBtn" onclick="launchGX()">GX</button>
+<button class="clientBtn" onclick="launchJustin()">Justin</button>
+<button class="clientBtn" onclick="launchKerosene()">Kerosene</button>
+<button class="clientBtn" onclick="launchMega()">Mega</button>
+<button class="clientBtn" onclick="launchPrismarine()">Prismarine</button>
+<button class="clientBtn" onclick="launchNit()">Nit</button>
+<button class="clientBtn" onclick="launchPrecision()">Precision</button>
+<button class="clientBtn" onclick="launchReborn()">Reborn</button>
+<button class="clientBtn" onclick="launchSkyfactory()">Skyfactory</button>
+<button class="clientBtn" onclick="launchUwU()">UwU</button>
+<button class="clientBtn" onclick="launchZeta()">Zeta</button>
+</div>
+</div>
+`
 
-    async function load(urls) {
-        const status = document.getElementById("status");
-        status.innerText = "Merging parts... This takes 5-10 seconds.";
-        try {
-            let content = "";
-            for (const url of urls) {
-                const res = await fetch(url);
-                if (!res.ok) throw new Error();
-                content += await res.text();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        ;
+    }
+    /* =========================
+      CLIENT LOADER
+    ========================= */
+    function showLaunchScreen() {
+        document.body.innerHTML = `<div class="card"><h2>Launching Client</h2></div>`;
+    }
+    async function loadClient(urls) {
+        setTimeout(async () => {
+            let fullHtml = "";
+            for (const u of urls) {
+                const res = await fetch(u);
+                fullHtml += await res.text();
             }
-            document.open(); document.write(content); document.close();
-        } catch (e) {
-            status.innerText = "Error: Blocked by school or link broken.";
-        }
+            document.open();
+            document.write(fullHtml);
+            document.close();
+        }, 1500);
+    }
+    /* =========================
+      CLIENT LINKS
+    ========================= */
+    function launchResent() {
+        showLaunchScreen();
+        loadClient(["https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/resent/clresentclient.html.part1", "https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/resent/clresentclient.html.part2"]);
+    }
+    function launchWurst() {
+        showLaunchScreen();
+        loadClient(["https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/wurst/clwurstclient.html.part1", "https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/wurst/clwurstclient.html.part2"]);
+    }
+    function launchTuff() {
+        showLaunchScreen();
+        loadClient(["https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/tuff/clTuff_Client_Offline_WASM.html.part1", "https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/tuff/clTuff_Client_Offline_WASM.html.part2"]);
+    }
+    function launchNova() {
+        showLaunchScreen();
+        loadClient(["https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/clnovaclient.html"]);
+    }
+    function launchPixel() {
+        showLaunchScreen();
+        loadClient(["https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/pixel/clpixelclient.html.part1", "https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/pixel/clpixelclient.html.part2"]);
+    }
+    function launchAstra() {
+        showLaunchScreen();
+        loadClient(["https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/astra/clastraclient.html.part1", "https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/astra/clastraclient.html.part2"]);
+    }
+    function launchSolar() {
+        showLaunchScreen();
+        loadClient(["https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/solarclient/clsolarclient.html.part1", "https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/solarclient/clsolarclient.html.part2"]);
+    }
+    function launchLambda() {
+        showLaunchScreen();
+        loadClient(["https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/lambda/cllambdaclient.html.part1", "https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/lambda/cllambdaclient.html.part2"]);
+    }
+    function launchPi() {
+        showLaunchScreen();
+        loadClient(["https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/clpiclient.html"]);
+    }
+    function launchLumine() {
+        showLaunchScreen();
+        loadClient(["https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/lumine/cllumineclient.html.part1", "https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/lumine/cllumineclient.html.part2"]);
+    }
+    function launchJmo() {
+        showLaunchScreen();
+        loadClient(["https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/cljmocraft.html"]);
+    }
+    function launchArch() {
+        showLaunchScreen();
+        loadClient(["https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/arch/clarchimedesclient.html.part1", "https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/arch/clarchimedesclient.html.part2"]);
+    }
+    function launchGX() {
+        showLaunchScreen();
+        loadClient(["https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/GX/clGXclient.html.part1", "https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/GX/clGXclient.html.part2"]);
+    }
+    function launchJustin() {
+        showLaunchScreen();
+        loadClient(["https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/justin/cljustinclient.html.part1", "https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/justin/cljustinclient.html.part2"]);
+    }
+    function launchKerosene() {
+        showLaunchScreen();
+        loadClient(["https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/clkeroseneclient.html"]);
+    }
+    function launchMega() {
+        showLaunchScreen();
+        loadClient(["https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/clmegaclient.html"]);
+    }
+    function launchPrismarine() {
+        showLaunchScreen();
+        loadClient(["https://cdn.jsdelivr.net/gh/genizy/mc@main/data/1.21.4/index.html"]);
+    }
+    function launchNit() {
+        showLaunchScreen();
+        loadClient(["https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/clnitclient.html"]);
+    }
+    function launchPrecision() {
+        showLaunchScreen();
+        loadClient(["https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/precision/clprecisionclient.html.part1", "https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/precision/clprecisionclient.html.part2"]);
+    }
+    function launchReborn() {
+        showLaunchScreen();
+        loadClient(["https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/reborn/clrebornclient.html.part1", "https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/reborn/clrebornclient.html.part2"]);
+    }
+    function launchSkyfactory() {
+        showLaunchScreen();
+        loadClient(["https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/skyfactory/clskyfactory.html.part1", "https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/skyfactory/clskyfactory.html.part2"]);
+    }
+    function launchUwU() {
+        showLaunchScreen();
+        loadClient(["https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/uwuclient/cluwuclient.html.part1", "https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/uwuclient/cluwuclient.html.part2"]);
+    }
+    function launchZeta() {
+        showLaunchScreen();
+        loadClient(["https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/zetaclient/clZetaClient.html.part1", "https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/zetaclient/clZetaClient.html.part2"]);
     }
     </script>
 </body>
