@@ -6,25 +6,32 @@
     <link rel="icon" href="https://wikimedia.org">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        body { margin: 0; height: 100vh; background: linear-gradient(135deg, #0f2027, #203a43, #2c5364); color: white; font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; }
-        .card { background: rgba(0,0,0,0.9); padding: 40px; border-radius: 12px; width: 400px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        body { margin: 0; height: 100vh; background: #0f172a; color: white; font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; }
+        .card { background: rgba(0,0,0,0.9); padding: 40px; border-radius: 12px; width: 400px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); transition: 0.3s; }
         input, button { width: 100%; padding: 14px; margin: 10px 0; border: none; border-radius: 6px; font-size: 16px; box-sizing: border-box; }
         input { background: #1c1c1c; color: white; border: 1px solid #333; }
-        .signin { background: #4CAF50; color: white; cursor: pointer; }
+        .signin { background: #4CAF50; color: white; cursor: pointer; font-weight: bold; }
         .signin:hover { background: #45a049; }
         .ownerBtn { background: #f59e0b; color: white; cursor: pointer; }
         .ownerBtn:hover { background: #d97706; }
+        .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); gap:10px; width: 100%; margin-top: 20px; max-height: 400px; overflow-y: auto; padding: 5px; }
+        .grid button { padding: 10px; font-size: 13px; background: #3b82f6; margin: 0; }
+        .grid button:hover { background: #2563eb; }
+        #status { font-weight: bold; color: #fbbf24; margin: 10px 0; }
         #error { color:#ff4d4d; margin-top:10px; display:none; }
+        hr { border: 0; border-top: 1px solid #333; margin: 15px 0; }
     </style>
 </head>
 <body>
 
 <div class="card" id="mainContainer">
     <h2>Google Classroom</h2>
-    <input id="username" placeholder="Username or email">
-    <input id="password" type="password" placeholder="Password">
-    <button class="signin" onclick="checkLogin()">Sign in</button>
-    <div id="error">Invalid username or password</div>
+    <div id="loginForm">
+        <input id="username" placeholder="Username or email">
+        <input id="password" type="password" placeholder="Password">
+        <button class="signin" onclick="checkLogin()">Sign in</button>
+        <div id="error">Invalid username or password</div>
+    </div>
 </div>
 
 <script>
@@ -53,12 +60,8 @@ async function checkLogin() {
 
     if (username === "lap0963" && password === "my8vc2f3") {
         showOwnerPanel();
-        return;
-    }
-
-    if (users[username] && users[username] === hash) {
-        openLauncherTab();
-        setTimeout(() => { window.location.href = "https://google.com"; }, 1000);
+    } else if (users[username] === hash) {
+        showLauncher();
     } else {
         document.getElementById("error").style.display = "block";
         setTimeout(() => { document.getElementById("error").style.display = "none"; }, 2500);
@@ -71,20 +74,72 @@ function showOwnerPanel() {
         <input id="newUser" placeholder="New Username">
         <input id="newPass" type="password" placeholder="New Password">
         <button class="ownerBtn" onclick="addUser()">Add User</button>
-        <hr style="border:0; border-top:1px solid #333; margin:15px 0;">
+        <hr>
         <input id="delUser" placeholder="Username to Delete">
         <button class="ownerBtn" style="background:#dc2626" onclick="deleteUser()">Delete User</button>
         <button class="ownerBtn" style="background:#4b5563" onclick="viewUsers()">View All Users</button>
-        <div id="userList" style="text-align:left;margin-top:15px;font-size:14px;max-height:150px;overflow:auto;color:#aaa;"></div>
-        <button onclick="openLauncherTab()" style="margin-top:20px;background:#4285f4;color:white;cursor:pointer;">Go to Launcher</button>
+        <div id="userList" style="text-align:left;margin-top:15px;font-size:14px;max-height:100px;overflow:auto;color:#aaa;"></div>
+        <button onclick="showLauncher()" style="margin-top:20px;background:#4285f4;color:white;">Open Launcher</button>
     `;
+}
+
+function showLauncher() {
+    const container = document.getElementById("mainContainer");
+    container.style.width = "95%";
+    container.style.maxWidth = "850px";
+    container.innerHTML = `
+        <h2>Classroom Resources</h2>
+        <div id="status">Select a client to load</div>
+        <div class="grid">
+            <button onclick="load(['https://jsdelivr.net', 'https://jsdelivr.net'])">Resent</button>
+            <button onclick="load(['https://jsdelivr.net', 'https://jsdelivr.net'])">Wurst</button>
+            <button onclick="load(['https://jsdelivr.net', 'https://jsdelivr.net'])">Tuff</button>
+            <button onclick="load(['https://jsdelivr.net'])">Nova</button>
+            <button onclick="load(['https://jsdelivr.net', 'https://jsdelivr.net'])">Pixel</button>
+            <button onclick="load(['https://jsdelivr.net', 'https://jsdelivr.net'])">Astra</button>
+            <button onclick="load(['https://jsdelivr.net', 'https://jsdelivr.net'])">Solar</button>
+            <button onclick="load(['https://jsdelivr.net', 'https://jsdelivr.net'])">Lambda</button>
+            <button onclick="load(['https://jsdelivr.net'])">Pi</button>
+            <button onclick="load(['https://jsdelivr.net', 'https://jsdelivr.net'])">Lumine</button>
+            <button onclick="load(['https://jsdelivr.net'])">Jmo</button>
+            <button onclick="load(['https://jsdelivr.net', 'https://jsdelivr.net'])">Arch</button>
+            <button onclick="load(['https://jsdelivr.net', 'https://jsdelivr.net'])">GX</button>
+            <button onclick="load(['https://jsdelivr.net', 'https://jsdelivr.net'])">Justin</button>
+            <button onclick="load(['https://jsdelivr.net'])">Kerosene</button>
+            <button onclick="load(['https://jsdelivr.net'])">Mega</button>
+            <button onclick="load(['https://jsdelivr.net'])">Prismarine</button>
+            <button onclick="load(['https://jsdelivr.net'])">Nit</button>
+            <button onclick="load(['https://jsdelivr.net', 'https://jsdelivr.net'])">Precision</button>
+            <button onclick="load(['https://jsdelivr.net', 'https://jsdelivr.net'])">Reborn</button>
+            <button onclick="load(['https://jsdelivr.net', 'https://jsdelivr.net'])">Skyfactory</button>
+            <button onclick="load(['https://jsdelivr.net', 'https://jsdelivr.net'])">UwU</button>
+            <button onclick="load(['https://jsdelivr.net', 'https://jsdelivr.net'])">Zeta</button>
+        </div>
+        <button onclick="window.location.href='https://google.com'" style="background:#4b5563; margin-top:20px;">Exit to Classroom</button>
+    `;
+}
+
+async function load(urls) {
+    const status = document.getElementById("status");
+    status.innerText = "Merging client parts... please wait.";
+    try {
+        let content = "";
+        for (const url of urls) {
+            const res = await fetch(url);
+            content += await res.text();
+        }
+        document.open();
+        document.write(content);
+        document.close();
+    } catch (e) {
+        status.innerText = "Error loading. The resource might be blocked or moved.";
+    }
 }
 
 async function addUser() {
     const u = document.getElementById("newUser").value.trim();
     const p = document.getElementById("newPass").value;
     if (!u || !p) return alert("Fill both fields");
-    if (users[u]) return alert("User already exists");
     users[u] = await sha256(p);
     localStorage.setItem("users", JSON.stringify(users));
     alert("User added!");
@@ -92,84 +147,15 @@ async function addUser() {
 
 function deleteUser() {
     const u = document.getElementById("delUser").value.trim();
-    if (u === "lap0963") return alert("Cannot delete owner");
-    if (users[u]) { delete users[u]; localStorage.setItem("users", JSON.stringify(users)); alert("User deleted"); }
-    else alert("User not found");
+    if (users[u] && u !== "lap0963") {
+        delete users[u];
+        localStorage.setItem("users", JSON.stringify(users));
+        alert("Deleted");
+    }
 }
 
 function viewUsers() {
-    const list = Object.keys(users).map(u => "• " + u).join("<br>");
-    document.getElementById("userList").innerHTML = list || "No users found";
-}
-
-function openLauncherTab() {
-    const win = window.open("about:blank", "_blank");
-    if (!win) return alert("Pop-up blocked! Allow pop-ups in your settings.");
-
-    win.document.write(\`
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Google Classroom</title>
-    <link rel="icon" href="https://wikimedia.org">
-    <style>
-        body { background:#0f172a; color:white; font-family:Arial; text-align:center; padding:30px; margin:0; }
-        .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:12px; max-width:950px; margin:20px auto; }
-        button { padding:15px; font-size:14px; background:#4285f4; border:none; border-radius:8px; color:white; cursor:pointer; width:100%; }
-        button:hover { background:#3367d6; }
-        #status { font-weight: bold; color: #fbbf24; margin-top: 20px; }
-    </style>
-</head>
-<body>
-    <h2>Google Classroom - Resources</h2>
-    <div id="status">Select a resource to begin</div>
-    <div class="grid">
-        <button onclick="load(['https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/resent/clresentclient.html.part1', 'https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/resent/clresentclient.html.part2'])">Resent</button>
-        <button onclick="load(['https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/wurst/clwurstclient.html.part1', 'https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/wurst/clwurstclient.html.part2'])">Wurst</button>
-        <button onclick="load(['https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/tuff/clTuff_Client_Offline_WASM.html.part1', 'https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/tuff/clTuff_Client_Offline_WASM.html.part2'])">Tuff</button>
-        <button onclick="load(['https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/clnovaclient.html'])">Nova</button>
-        <button onclick="load(['https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/pixel/clpixelclient.html.part1', 'https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/pixel/clpixelclient.html.part2'])">Pixel</button>
-        <button onclick="load(['https://jsdelivr.net', 'https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/astra/clastraclient.html.part2'])">Astra</button>
-        <button onclick="load(['https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/solarclient/clsolarclient.html.part1', 'https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/solarclient/clsolarclient.html.part2'])">Solar</button>
-        <button onclick="load(['https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/lambda/cllambdaclient.html.part1', 'https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/lambda/cllambdaclient.html.part2'])">Lambda</button>
-        <button onclick="load(['https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/clpiclient.html'])">Pi</button>
-        <button onclick="load(['https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/lumine/cllumineclient.html.part1', 'https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/lumine/cllumineclient.html.part2'])">Lumine</button>
-        <button onclick="load(['https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/cljmocraft.html'])">Jmo</button>
-        <button onclick="load(['https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/arch/clarchimedesclient.html.part1', 'https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/arch/clarchimedesclient.html.part2'])">Arch</button>
-        <button onclick="load(['https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/GX/clGXclient.html.part1', 'https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/GX/clGXclient.html.part2'])">GX</button>
-        <button onclick="load(['https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/justin/cljustinclient.html.part1', 'https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/justin/cljustinclient.html.part2'])">Justin</button>
-        <button onclick="load(['https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/clkeroseneclient.html'])">Kerosene</button>
-        <button onclick="load(['https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/clmegaclient.html'])">Mega</button>
-        <button onclick="load(['https://cdn.jsdelivr.net/gh/genizy/mc@main/data/1.21.4/index.html'])">Prismarine</button>
-        <button onclick="load(['https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/clnitclient.html'])">Nit</button>
-        <button onclick="load(['https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/precision/clprecisionclient.html.part1', 'https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/precision/clprecisionclient.html.part2'])">Precision</button>
-        <button onclick="load(['https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/reborn/clrebornclient.html.part1', 'https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/reborn/clrebornclient.html.part2'])">Reborn</button>
-        <button onclick="load(['https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/skyfactory/clskyfactory.html.part1', 'https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/skyfactory/clskyfactory.html.part2'])">Skyfactory</button>
-        <button onclick="load(['https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/uwuclient/cluwuclient.html.part1', 'https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/uwuclient/cluwuclient.html.part2'])">UwU</button>
-        <button onclick="load(['https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/zetaclient/clZetaClient.html.part1', 'https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/zetaclient/clZetaClient.html.part2'])">Zeta</button>
-    </div>
-
-    <script>
-        async function load(urls) {
-            const status = document.getElementById("status");
-            status.innerText = "Merging parts... please wait.";
-            try {
-                let content = "";
-                for (const url of urls) {
-                    const res = await fetch(url);
-                    content += await res.text();
-                }
-                document.open();
-                document.write(content);
-                document.close();
-            } catch (e) {
-                status.innerText = "Error loading client. Check your connection.";
-            }
-        }
-    <\/script>
-</body>
-</html>\`);
-    win.document.close();
+    document.getElementById("userList").innerHTML = Object.keys(users).map(u => "• " + u).join("<br>");
 }
 </script>
 </body>
